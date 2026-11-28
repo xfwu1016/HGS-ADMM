@@ -13,7 +13,10 @@ from dataclasses import dataclass, field
 from time import perf_counter
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
+from scipy.optimize import brentq
 from scipy.special import expit, xlogy
+
+from stopping_checks import is_checkpoint
 
 
 def soft(x, threshold):
@@ -94,7 +97,15 @@ class Factor:
                 hi = np.where(residual > 0,z,hi)
                 inside = np.isfinite(candidate) & (candidate > lo) & (candidate < hi)
                 z = np.where(converged,z,np.where(inside,candidate,lo+0.5*(hi-lo)))
-            raise ArithmeticError("logistic proximal solve did not converge")
+            # Interior Newton steps can alternate near the bracket endpoints.
+            # Finish unresolved coordinates with a bracketed root solver.
+            result = np.minimum(hi, np.maximum(lo, candidate))
+            for i in np.flatnonzero(~converged):
+                result[i] = brentq(
+                    lambda value: value - v[i] - shift[i] * expit(-self.response[i] * value),
+                    lo[i], hi[i], xtol=1e-14,
+                )
+            return result
         if self.kind == "l1":
             return soft(v, t)
         if self.kind == "l2":
@@ -283,7 +294,7 @@ class GraphSplitting:
             du=xi-neweta;deta=neweta-self.eta
             laststep=float(self.rho*np.dot(self.W,deta*deta+du*du))
             self.u+=du;self.eta=neweta
-            if k%check_every==0 or k==1 or k==maxiter:
+            if is_checkpoint(k, check_every, maxiter):
                 primal,dual,gap=self.certificate()
                 relative=gap/max(1.0,abs(primal))
                 history.append(dict(iteration=k,objective=primal,dual=dual,gap=gap,relative_gap=relative,
@@ -295,7 +306,7 @@ class GraphSplitting:
                                                   coef=np.concatenate([self.eta[s] for s in self.xs]))
                 if relative <= tol:break
         elapsed=perf_counter()-start
-        primal,dual,gap=self.certificate()
+        # The final update was already certified inside the loop.
         return dict(coef=np.concatenate([self.eta[s] for s in self.xs]),iterations=k,objective=primal,
                     dual=dual,gap=gap,relative_gap=gap/max(1.0,abs(primal)),
                     squared_step=laststep,elapsed_seconds=elapsed,converged=(gap/max(1.0,abs(primal))<=tol),
@@ -304,7 +315,7 @@ class GraphSplitting:
                     largest_local_matrix=self.largest_local_matrix,
                     factorization_storage_scalars=self.factorization_storage_scalars,
                     state_dimension=self.eta.size,invariant_error=self.invariant_error(),history=history,
-                    diagnostic_evaluations=len(history)+1,snapshots=snapshots,
+                    diagnostic_evaluations=len(history),snapshots=snapshots,
                     initial_objective=initial_objective)
 
 

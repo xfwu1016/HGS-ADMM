@@ -1,0 +1,20 @@
+# Python 3.12.14 environment snapshot, 2026-11-27.
+# Includes runtime dependency closure of requirements.txt; excludes optional extras.
+# This records package versions, not operating-system or BLAS binaries.
+contourpy==1.3.3
+cycler==0.12.1
+fonttools==4.61.1
+joblib==1.5.3
+kiwisolver==1.4.9
+matplotlib==3.10.8
+numpy==2.3.5
+packaging==26.4
+pandas==2.2.3
+pillow==13.0.0
+pyparsing==3.3.2
+python-dateutil==4.0.0
+pytz==2026.6
+scikit-learn==1.8.0
+scipy==1.17.0
+threadpoolctl==3.6.0
+tzdata==2026.6

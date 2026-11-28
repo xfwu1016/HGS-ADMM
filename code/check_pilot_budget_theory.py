@@ -7,6 +7,7 @@ convex factors on the supplied maps. Its exact dual solution is zero, so the
 computed pilot objective is an actual Fenchel gap, not a guessed radius.
 """
 from pathlib import Path
+import os
 from itertools import combinations
 import json
 import numpy as np
@@ -115,7 +116,7 @@ def main():
             'certificate norm envelopes','selected upper bound <= uniform upper bound',
             'true P regret <= computable Vplus-Vminus',
             'full computable P upper bound','zero-radius floored oracle identity']}
-    output=Path(__file__).resolve().parents[1]/'results/pilot_budget_theory_checks.json'
+    output=Path(os.environ.get("CSDA_CHECK_OUTPUT", Path(__file__).resolve().parents[1] / "results")) / "pilot_budget_theory_checks.json"
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))

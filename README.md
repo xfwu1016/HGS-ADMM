@@ -1,93 +1,102 @@
-# Graph splitting for structured regression with hybrid data partitions
+# Weighted graph splitting: reproducibility code
 
-Reproduction code accompanying the manuscript by Xiaofei Wu.
+Code for **Weighted graph splitting for structured regression with sample and feature partitions**, by Xiaofei Wu.
 
-[中文运行说明](README_ZH.md)
+[中文说明](README_ZH.md) · [Data and preprocessing](docs/DATA.md) · [Experiment and output map](docs/EXPERIMENTS.md) · [Environment details](docs/ENVIRONMENT.md)
 
-This code-only package contains the solvers, data generators, complete experiment settings, validation scripts, and figure/table generators. It contains no manuscript, saved result arrays, precomputed figures, or virtual environment. Extract the ZIP and upload the contents of this directory to your GitHub repository.
+The main entry point, [reproduce.py](reproduce.py), runs the original 38-stage study and its four figures. The current manuscript additionally requires the separate joint-metric experiments and Figure 5; run the commands in [ACCELERATION_EXTENSION.md](docs/ACCELERATION_EXTENSION.md) after the original study, followed by the adaptive controls and new-draw sensitivity commands in [ADAPTIVE_COMPARISON.md](docs/ADAPTIVE_COMPARISON.md). The `--all` flag alone does not reproduce either extension. A fresh run needs no supplied result files or manuscript source. The public data are included in the installed scikit-learn distribution; the experiments do not download data.
 
-## Requirements
+[RUN_VERIFICATION.json](RUN_VERIFICATION.json) records the completed clean run, its environment and checks. It is a compact verification record, not an input dataset or a substitute for rerunning the code.
 
-The manuscript environment uses **Python 3.12.14** and the exact dependency versions in `requirements.txt`: NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0, Matplotlib 3.10.8, and pandas 2.2.3. Python 3.12 is recommended. No LaTeX installation is needed to run the experiments or export the figures and numerical table source.
+## Install and run
 
-Synthetic data are generated from the seeds encoded in `code/run_experiments.py`. The diabetes and Wisconsin Diagnostic Breast Cancer datasets are included with scikit-learn. The complete pipeline needs no separately supplied data files or network data download after dependencies have been installed.
+Run these commands from the directory containing `reproduce.py`. The recorded environment uses **Python 3.12.14**. The full runtime dependency snapshot is in [requirements-lock.txt](requirements-lock.txt); [requirements.txt](requirements.txt) retains the five main scientific package versions.
 
-## Windows: run from PowerShell
-
-Install Python 3.12 first. Open PowerShell in this extracted directory, where `reproduce.py` is visible, then run:
-
-```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe reproduce.py --validate
-.\.venv\Scripts\python.exe reproduce.py --all
-```
-
-Calling the environment's Python directly avoids the need to activate a PowerShell script. `--validate` checks the implementation and exact examples; **it does not reproduce the full numerical study**. `--all` performs those checks again, executes every full-size experiment, and generates all numerical tables and figures.
-
-## Linux or macOS
+Linux/macOS:
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements-lock.txt
 .venv/bin/python reproduce.py --validate
-.venv/bin/python reproduce.py --all
+.venv/bin/python reproduce.py --all --jobs 3
 ```
 
-## Execution modes
+Windows PowerShell, with Python 3.12 installed:
 
-| Command | Work performed |
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+.venv\Scripts\python.exe reproduce.py --validate
+.venv\Scripts\python.exe reproduce.py --all --jobs 3
+```
+
+The validated platform is Linux. The commands use Python's cross-platform `spawn` process mode for TCP experiments, but Windows/macOS timings and rendering have not been separately certified. No LaTeX installation or GPU is needed to run the studies or generate the figure and table sources.
+
+`--validate` runs seven numerical-check stages; it is **not the full experimental study**. `--all` runs 38 stages, including 138 main records, 40 repeated-split records, 14 complete two-process TCP runs, pilot/continuation studies, stopping and partition diagnostics, and the final output checks. All stages must finish successfully before the run manifest reports `status: passed`. The manifest includes row-count checks and script hashes.
+
+The archived pre-revision clean Linux run completed all 38 stages in **888.52 seconds (about 14.8 minutes)** with `--jobs 3` and one BLAS thread per solver. This is a measured reference for that environment, not a guaranteed runtime on another machine. The full study contains many optimization fits, strict stopping targets and deliberate waits in the TCP delay profiles. Use the actual elapsed time recorded in `logs/run_*.json` for your hardware. `--jobs 3` parallelizes selected independent studies; use `--jobs 1` when memory or CPU availability is limited. Wall times depend on hardware, operating-system scheduling and load.
+
+## Fresh execution and regeneration
+
+The GitHub-oriented code archive contains no generated experiment results. Extract it into a new directory for an independent run. `--all` starts the stage sequence from the beginning and overwrites its named outputs; it does not implement automatic resume. A submission archive may additionally contain generated outputs for inspection.
+
+After a **completed original 38-stage run**, regenerate its summaries, tables and four figures without repeating the original optimization studies. The joint-extension summary commands remain separate:
+
+```bash
+.venv/bin/python reproduce.py --postprocess
+```
+
+On Windows, replace `.venv/bin/python` with `.venv\Scripts\python.exe`. Individual stages are available through `--step`; their earlier dependencies must already exist. See `python reproduce.py --help` and the [experiment map](docs/EXPERIMENTS.md). Validation results go to timestamped `results_check/` directories and do not replace the study tables.
+
+Generated files are placed in:
+
+| Directory | Contents |
 |---|---|
-| `python reproduce.py --validate` | Independent solver checks, input checks, budget-certificate checks, analytic ridge and exact regrouping examples |
-| `python reproduce.py --all` | Complete study: validation, 138 main graph runs, 30 sample-consensus runs, 27 penalty-sensitivity runs, 135 pilot-comparison main solves and 45 pilot phases, then tables and figures |
-| `python reproduce.py --postprocess` | Regenerate pilot diagnostics, tables and figures from an already completed full run |
-| `python reproduce.py --step figures` | Regenerate only the three figures from complete main-run outputs |
-| `python reproduce.py --step NAME` | Run one stage shown by `python reproduce.py --help`; dependencies from earlier stages must already exist |
+| `results/` | Raw records, saved coefficients and traces, diagnostic summaries and processed split data |
+| `tables/` | Numerical LaTeX tables and manuscript text excerpts |
+| `figures/` | Four original figures (PDF/SVG/PNG) and joint-heterogeneity Figure 5 (PDF/PNG) |
+| `logs/` | Per-stage stdout and JSON execution manifests |
+| `results_check/` | Timestamped numerical-validation outputs |
 
-The entry point creates output directories, sets a noninteractive plotting backend and one BLAS thread, uses the current Python environment for every script, and stops on a failing stage. Each stage replaces its own generated outputs; use a fresh extracted directory for an independent rerun.
+The figure filenames are stable identifiers and do not all match the current manuscript numbering:
 
-`--jobs 1` is the default. `--jobs 2` or `--jobs 3` can run independent pilot jobs concurrently. Every optimization solve remains a sequential simulation; this option does not change data, iterations, tolerances or the interpretation of solver timings.
+| Manuscript figure | File stem | Script |
+|---|---|---|
+| Figure 1: factor structure | `fig1_factor_structure` | `code/make_figures.py` |
+| Figure 2: algorithm workflow | `fig_alg1_workflow` | `code/make_workflow.py` |
+| Figure 3: convergence | `fig2_convergence` | `code/make_figures.py` |
+| Figure 4: communication | `fig3_communication` | `code/make_figures.py` |
+| Figure 5: joint-weight heterogeneity | `fig_joint_heterogeneity` | `code/summarize_acceleration.py` |
 
-## Full pipeline and outputs
+## Interpretation and reproducibility limits
 
-The full sequence is:
+The main graph-splitting experiments execute logical workers within one process. The TCP study executes Worker and Coordinator roles in separate operating-system processes on one host using a loopback socket. One Worker aggregates four sample blocks. Its LAN/WAN profiles add application-level latency and serialization delays; they are not measurements of a physical multi-host network or bandwidth-controlled link. Local loopback sockets must be permitted.
 
-1. `validate_solver.py`, `check_solver_inputs.py`, `check_pilot_budget_theory.py`.
-2. `analytic_partition.py`, `verify_partition_examples.py`.
-3. `run_experiments.py` with all five seeds and both public-data examples.
-4. `consensus_baseline.py`, then `penalty_sensitivity.py`.
-5. `pilot_budget_experiment.py` with the prescribed 100-step pilot and all configurations.
-6. `make_tables.py`, then `make_figures.py`.
+The repeated public-data study uses five split seeds per dataset. Diabetes retunes the penalty within each training split. The breast-cancer study freezes the penalty selected on the original validation split; later test partitions can overlap that selection split. Its predictive scores are descriptive checks of optimizer agreement at a fixed penalty, not an independent evaluation of a new tuning procedure. See [DATA.md](docs/DATA.md).
 
-| Output directory | Contents generated when run |
-|---|---|
-| `results/` | CSV summaries, JSON configuration/check records, coefficients, data splits and convergence traces |
-| `tables/` | Seven LaTeX files covering numerical Tables 2–11 |
-| `figures/` | Figures 1–3 in PDF, PNG and editable SVG; Figure 1 PNG is 1200 dpi, Figures 2–3 are 900 dpi |
-| `logs/` | Stage logs and a JSON run record with return codes, dependency versions and elapsed times |
+The optional `--step tcp-replay` command is a separate synthetic transport diagnostic and is excluded from `--all` and from manuscript evidence. It requires completed repeated-split results. The complete distributed optimization evidence comes from `tcp_distributed_solver.py` and its merged 14-run output.
 
-Table 1 is the manuscript's conceptual model taxonomy, not an empirical output. Its content is not needed to run the code. The full entry point checks expected record counts, convergence flags and the existence of every figure/table file at completion.
+A separate within-split timing audit can be rerun with `python code/tcp_timing_repeat_audit.py`. It performs three paired runs on the Diabetes seed-2026 LAN split, randomizes the Unit/Budget execution order within each pair, and writes `results/tcp_timing_repeats_focus.csv`. This is a timing-variability diagnostic, not an additional independent split and not a physical-network benchmark. The archived summary is in `results/tcp_timing_repeats_focus_summary.json`; timings will vary across machines and system load.
 
-See [the manuscript-to-code map](docs/REPRODUCIBILITY_MAP.md) and [the detailed experiment protocol](code/README.txt) for model scaling, hyperparameters, stopping criteria, saved fields and individual script commands.
+Seeds and stopping rules are fixed in the code. Numerical rounding, BLAS implementations and font availability can affect exact bytes or rendering; timings are not expected to repeat exactly. The run manifests and benchmark environment record make these differences inspectable. The version snapshot does not include operating-system libraries or a wheel cache; [ENVIRONMENT.md](docs/ENVIRONMENT.md) explains offline installation.
 
-## Numerical interpretation
+## Availability and permissions
 
-All comparison configurations use the same prescribed data and objective within a sample. Main synthetic comparisons use relative Fenchel gap `1e-6`; public-data runs use `1e-7`; numerical references use `1e-10`. The fixed sixteen-data-block experiment uses `(2,8)`, `(4,4)` and `(8,2)`, five seeds, `rho=1`, a 100-step unit-metric pilot and budget floor `0.05`.
+The code is available at https://github.com/xfwu1016/HGS-ADMM. The code does not require credentials or a private data service.
 
-The scripts retain all specified outcomes, including configurations where a budget has no work advantage. Iterative payload counts transmitted scalars. Pilot/allocation payload and certificate evaluations are reported separately. Timing is for the sequential implementation and varies by computer; it is not a measured distributed wall time.
+No separate code license was supplied with the source. No new license or grant of rights has been added. For permissions, contact the author at `xfwu1016@ynu.edu.cn`. Third-party software and data remain subject to their respective terms.
 
-Fixed random seeds and pinned packages define the reproduction. Different BLAS implementations or platforms can cause small floating-point changes or a nearby stopping checkpoint; elapsed-time columns and PDF metadata are not expected to match byte-for-byte. The convergence certificates, problem definitions and full result tables are retained for comparison.
+## Editorial revision of 27 November 2026
 
-## Additional finite-pilot checks
-The complete run now also evaluates the corner bound on all 45 original pilots and runs all 36 seed-zero combinations of model, layout and pilot length. The outputs are results/pilot_box.csv and results/pilot_length.csv. They are generated by the pilot-box and pilot-length stages. The input checks cover zero-adjoint unpenalized dual candidates, equivalent binary logistic label encodings and rejection of invalid mixed labels. With an unpenalized feature objective and nonzero adjoint, radial scaling gives a feasible zero candidate and can leave the stopping gap positive. The code estimates communication as logical scalar messages on one process.
+The optimization algorithms, tuning grids, seeds and archived numerical fits are unchanged. This revision adds `code/pilot_uncertainty_summary.py`, which derives envelope and allocation diagnostics from `results/pilot_budget_weights.json` without fitting a model. It is also called by the existing table-generation stage, so the pipeline still has 38 stages. Run `python code/pilot_uncertainty_summary.py` to regenerate its CSV, JSON and two LaTeX outputs. The new diagnostic checks the stored envelope formulas and simplex normalization.
 
-## Source layout
+Some detailed tables have moved from the manuscript to the supplement; column headings now distinguish update scalars, update-plus-certificate bounds and TCP application frames. The old clean-run manifest records the pre-revision implementation; the separate `EDITORIAL_REVISION_CHECKS.json` records checks for this revision. The complete optimization pipeline was not rerun for these editorial changes.
 
-- `reproduce.py`: portable pipeline entry point; no model or solver updates.
-- `code/hybrid_solver.py`: weighted factor-graph splitting and original-objective certificate.
-- `code/run_experiments.py`: main data generation, estimation, tuning and saved traces.
-- `code/consensus_baseline.py`: sample-consensus comparator.
-- `code/pilot_budget_experiment.py`: certified output allocation and fixed-block comparison.
-- Remaining scripts: independent numerical checks, exact examples, sensitivity and output generation.
-- `requirements.txt`: fixed dependency versions.
-- `.gitignore`: keeps generated outputs, caches and local environments out of an ordinary Git commit.
+
+## Joint metric extension (28 November 2026)
+
+The current manuscript adds a one-switch joint allocation and penalty rule with separate oracle and heterogeneity diagnostics. See [ACCELERATION_EXTENSION.md](docs/ACCELERATION_EXTENSION.md) for reproduction commands, ledger, sample structure and limitations. The original 38-stage pipeline remains unchanged; new experiments are separate.
+
+## Adaptive comparison and new-draw robustness
+
+The current revision adds seven-arm comparisons, new high-dimensional draws and pilot/lag sensitivity. These are separate from the original 38 stages and joint extension. See [ADAPTIVE_COMPARISON.md](docs/ADAPTIVE_COMPARISON.md) for commands, safeguarded SRA/RB definitions, failure-aware summaries and complete cost accounting.

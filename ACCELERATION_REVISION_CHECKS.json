@@ -1,0 +1,82 @@
+{
+  "original": {
+    "rows": 196,
+    "converged": 196,
+    "capped": 0,
+    "sha256": "c80883ee1a5b7d93efea44951d48fea009f3c73c343b884f4e2979ff60e23372",
+    "unique_keys": true,
+    "ledger_exact": true
+  },
+  "sweep": {
+    "rows": 408,
+    "converged": 368,
+    "capped": 40,
+    "sha256": "5b185966238f0fb7b51b29befcdd1773157cff2154701d26683a4ff014274082",
+    "unique_keys": true,
+    "ledger_exact": true
+  },
+  "hetero": {
+    "rows": 1728,
+    "converged": 1728,
+    "capped": 0,
+    "sha256": "1fa46b6ec0c6c35dcad857923e448e27ce7789f474691530e19c5fc9ce6afcc4",
+    "unique_keys": true,
+    "ledger_exact": true
+  },
+  "joint_original": {
+    "rows": 294,
+    "converged": 294,
+    "capped": 0,
+    "sha256": "ce708cbb4581f98aa0264746b0b44f9f5ec9c5aee66cf8a0d832072cf8a8f10b",
+    "unique_keys": true,
+    "ledger_exact": true
+  },
+  "joint_hetero": {
+    "rows": 864,
+    "converged": 864,
+    "capped": 0,
+    "sha256": "15db0b9b887b58f4abc4817a06d18706fc2111a102a7a82b1c70387ab2675daa",
+    "unique_keys": true,
+    "ledger_exact": true
+  },
+  "original_results": {
+    "unchanged_files": 250
+  },
+  "date": "2026-11-28",
+  "new_rule_check": {
+    "random_candidates": 50,
+    "min_random_to_selected": 1.2572496215097486,
+    "max_constrained_objective_error": 1.758593271006248e-13,
+    "rho": 0.3481321622662099,
+    "primal_dual_invariants": [
+      4.975775237287144e-16,
+      2.2764960272645386e-14
+    ],
+    "status": "passed"
+  },
+  "references": {
+    "main_labels": 163,
+    "supplement_labels": 17,
+    "missing": [],
+    "duplicates": [],
+    "status": "passed"
+  },
+  "validation": "All seven original validation stages passed; see validation_20261128.log. Original 38-stage pipeline not rerun.",
+  "pdf_pages": {
+    "main": 32,
+    "supplement": 10
+  },
+  "pdf_sha256": {
+    "main": "6c4b9aa9f32c13ee45122412f7663e054a28d9c21b08290b596fe541fd3742b8",
+    "supplement": "ba224519bcd03fbc6089ec69974050166a78959ea25882c5288fc1fd3b7ca37e"
+  },
+  "code_sha256": {
+    "summarize_rho_diagnostics.py": "2d21b79a629e18836f8a396fcf2042630a625c790410f426dfe96bc4a8b736b0",
+    "joint_acceleration.py": "46d14da58abb5d972d8e7bd072e94710c5998c16203719cd7b55a82872202972",
+    "summarize_acceleration.py": "2bdf05b443b958caf9f2f5945e3b43cbaacf806985375f22a1a4b54b2bcab6cf",
+    "check_joint_metric.py": "2b9539a0534815efca9e12dea7b713340f55455beece45b273b0c942990648a0",
+    "acceleration_diagnostics.py": "1381d39503e1f250e8d8239a8a0f04c790358530f7448bc1c7ffd71f880b1a5d",
+    "joint_metric.py": "00cf6fc84c8e30c16bafc56bc5ebf971ab5a3faaa837cae3683d9b076002780f"
+  },
+  "pdf_visual_review": "All 42 pages checked in rendered contact sheets; new theory, figure, table and highlights also inspected at detail scale."
+}

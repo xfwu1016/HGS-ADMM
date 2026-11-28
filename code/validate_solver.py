@@ -1,6 +1,7 @@
 """Independent numerical validation, not a performance benchmark."""
 import json
 from pathlib import Path
+import os
 import numpy as np
 from scipy.optimize import brentq, linprog, minimize
 from scipy.special import expit
@@ -97,6 +98,6 @@ def run_validation():
 
 
 if __name__=="__main__":
-    output=Path(__file__).resolve().parents[1]/"results"/"validation.json"
+    output=Path(os.environ.get("CSDA_CHECK_OUTPUT", Path(__file__).resolve().parents[1] / "results")) / "validation.json"
     records=run_validation();output.write_text(json.dumps(records,indent=2))
     print(json.dumps(records,indent=2))

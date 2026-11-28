@@ -1,20 +1,4 @@
-# Academic Figure Skill Asset Confirmation (verified against assets/figures/)
-# (a) factor/operator block schematic -> cross-type inherit -> param inherit
-# (b) convergence lines -> LineTrend/plot_sweep.py -> param inherit
-# (c) paired method points -> PairedBoxScatter/plot_PairedBoxScatter1.R -> param inherit
-# RULE: "native run" = load pre-rendered PNG via Image.open().ax.imshow().
-#       "param inherit" = drawing function below that copies Class A/B/C values.
-#       If a panel says "native run" and you write a drawing function, you broke the contract.
-# The LineTrend asset contains two aggregate fixed-step sweeps. Our multi-seed
-# adaptive-stopping histories have a different structure; param inheritance
-# retains unframed axes and alpha=0.8, with thinner strokes for ten raw traces.
-# Both companion asset PNGs were inspected. The paired-plot asset's boxplots
-# and test annotations are not inherited: all five observations and exact
-# arithmetic means are shown, without inferential claims. Revision 5 uses
-# native CAS widths and a restrained operator-block schematic. Revision 6
-# increases Figure 1 print-scale clarity and exports it at 1200 dpi;
-# Figures 2 and 3 retain their 900 dpi exports and unchanged plotting code.
-# Academic Figure Skill Typography Baseline — COPY VERBATIM, place at TOP of script
+"""Generate the factor diagram, convergence traces and paired communication plots."""
 import matplotlib as mpl
 mpl.rcParams.update({
     "font.family": "sans-serif",
@@ -36,7 +20,7 @@ mpl.rcParams.update({
     "legend.frameon": False,
 })
 
-# Academic Figure Skill Nature/Cell/Science Color Palette -- COPY VERBATIM
+# Colors shared across the convergence and communication plots.
 CATEGORICAL = ["#2166AC", "#B2182B", "#1B7837", "#F1A340", "#762A83", "#666666"]
 CATEGORICAL_EXTENDED = [
     "#2166AC", "#B2182B", "#1B7837", "#F1A340", "#762A83", "#666666",
@@ -48,7 +32,7 @@ ACCENT_RED  = "#B2182B"
 GREY        = "#999999"
 BLACK       = "#222222"
 
-# Academic Figure Skill Export Baseline — COPY VERBATIM
+# Vector and raster export settings.
 mpl.rcParams.update({
     "pdf.fonttype": 42,         # TrueType font embedding
     "svg.fonttype": "none",     # editable text in SVG
@@ -57,7 +41,7 @@ mpl.rcParams.update({
 })
 
 def save_cns_figure(fig, filename):
-    """Standard Academic Figure Skill export: vector PDF + 300dpi PNG preview."""
+    """Save a vector PDF and a 300 dpi PNG preview."""
     fig.savefig(f"{filename}.pdf", bbox_inches="tight", dpi=300)
     fig.savefig(f"{filename}.png", bbox_inches="tight", dpi=300)
 
@@ -87,7 +71,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon, Rectangle
 
 ROOT=Path(__file__).resolve().parents[1]
 FIG=ROOT/'figures';FIG.mkdir(exist_ok=True)
@@ -134,86 +118,119 @@ def metric_legend(fig, points=False):
 
 
 def schematic():
-    """An operator-block matrix at the exact CAS single-column width.
+    """Draw the sample-by-feature partition and its structural operators."""
+    width_mm, height_mm = 173.8, 66.0
+    mask = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 1]], dtype=bool)
+    expected_labels = [f'A_{i + 1}{j + 1}' for i, j in np.argwhere(mask)]
+    zeros = [[int(i) + 1, int(j) + 1] for i, j in np.argwhere(~mask)]
+    assert len(expected_labels) == 10 and zeros == [[3, 3], [4, 1]]
 
-    The first two factor rows are a dense 2 x 3 data partition. Two further
-    structural factors connect only adjacent feature blocks. Symbols and
-    Explicit A_aj labels expose the linear maps, rather than only their
-    support. Neutral zero cells remain literal zero maps, not missing data.
-    """
-    width_mm=83.74;height_mm=46
-    mask=np.array([[1,1,1],[1,1,1],[1,1,0],[0,1,1]],dtype=bool)
-    with mpl.rc_context({'font.size':8,'savefig.bbox':None}):
-        fig=plt.figure(figsize=(width_mm/25.4,height_mm/25.4))
-        ax=fig.add_axes([0,0,1,1])
-        ax.set_xlim(0,width_mm);ax.set_ylim(height_mm,0);ax.axis('off')
-        # Coordinates are millimetres: typography and gaps are chosen at the
-        # final publication size, rather than enlarged and shrunk afterwards.
-        col_x=np.array([35.7,53.7,71.7])
-        row_y=np.array([12.2,20.4,32.0,40.2])
-        cell_w,cell_h=16.0,6.8
-        for label,y,color in [('Data',16.3,COLORS['unit']),
-                               ('Structure',36.1,COLORS['budget'])]:
-            ax.text(7.65,y,label,ha='center',va='center',
-                    fontsize=9,color=color)
-            ax.plot([15.3,15.3],[y-7.65,y+7.65],color=color,lw=1.2,
-                    solid_capstyle='butt')
-        for j,x in enumerate(col_x):
-            ax.text(x,4.3,rf'$\beta_{j+1}$',ha='center',va='center',fontsize=12)
-        for i in range(4):
-            color=COLORS['unit'] if i<2 else COLORS['budget']
-            fill='#F0F5FA' if i<2 else '#FAF3EB'
-            rule='#ABC2D8' if i<2 else '#D5B18C'
-            y=row_y[i]
-            ax.text(21.2,y,rf'$f_{i+1}$',ha='center',va='center',fontsize=12)
-            for j,x in enumerate(col_x):
-                ax.add_patch(Rectangle((x-cell_w/2,y-cell_h/2),cell_w,cell_h,
-                             facecolor=fill if mask[i,j] else 'white',
-                             edgecolor=rule if mask[i,j] else '#B8C0C8',
-                             linewidth=.65,zorder=0))
-                if mask[i,j]:
-                    ax.text(x,y,rf'$\mathbf{{A}}_{{{i+1}{j+1}}}$',
-                            ha='center',va='center',fontsize=12,color=color)
-                else:
-                    ax.text(x,y,r'$0$',ha='center',va='center',
-                            fontsize=12,color='#59616A')
-        # One bracketed augmented operator; the white gap separates the two
-        # factor classes without introducing an extra row or an extra map.
-        ax.plot([27.0,25.5,25.5,27.0],[8.3,8.3,44.1,44.1],
-                color='#59616A',lw=.85,solid_capstyle='butt')
-        ax.plot([80.4,81.9,81.9,80.4],[8.3,8.3,44.1,44.1],
-                color='#59616A',lw=.85,solid_capstyle='butt')
-        # Verify every label at its final physical size, including pairwise
-        # separation. The plot is exact line art rather than a raster inset.
-        fig.canvas.draw()
-        renderer=fig.canvas.get_renderer();canvas=fig.get_window_extent()
-        text_boxes=[artist.get_window_extent(renderer) for artist in ax.texts]
-        for box in text_boxes:
-            assert canvas.contains(*box.min) and canvas.contains(*box.max)
-        for index,box in enumerate(text_boxes):
-            assert not any(box.overlaps(other) for other in text_boxes[index+1:])
-        export_figure(fig,'fig1_factor_structure',[ax],png_dpi=1200)
-    qa={
-        'archetype':'factor-operator block schematic','target':'Elsevier cas-dc single column',
-        'native_width_mm':width_mm,'native_height_mm':height_mm,
-        'claim':'A 2-by-3 data partition and cross-block penalties share one sparse factor-feature representation.',
-        'incidence_mask':mask.astype(int).tolist(),'data_factor_rows':[1,2],
-        'structural_factor_rows':[3,4],'nonzero_incidences':int(mask.sum()),
-        'encoding':'Blue operator blocks=data factors; ochre operator blocks=structural factors; neutral 0=known zero map. Group location and labels supplement color.',
-        'labels':'beta1-beta3, f1-f4, ten nonzero A_aj blocks, two exact zeros; Data and Structure identify factor classes.',
-        'font_pt':{'column_labels':12,'row_and_operator_labels':12,'zero_entries':12,'factor_group_labels':9},
-        'export':['vector PDF','1200 dpi PNG','editable SVG'],
-        'data_status':'Exact conceptual example, not estimated experimental outcomes',
-        'layout_checks':'All 21 text bounds lie within the native-size canvas and are pairwise disjoint',
-        'statistics':'Not applicable to a mathematical incidence example',
-        'design_review':{
-            'style':'Larger 12 pt mathematical labels and 9 pt factor-group names; stronger 0.65 pt cell rules and 0.85 pt operator brackets, with blue/ochre fills, dark neutral zeros, aligned labels and unchanged matrix geometry.',
-            'code':'Native CAS column size; embedded TrueType PDF; editable SVG; 1200 dpi PNG; label bounds and pairwise separation asserted.',
-            'integrity':'The 4-by-3 mask retains all 10 nonzero incidences of the conceptual example.',
-            'visual':'Revision 6 PDF inspected at 150 and 200 dpi and in a rendered manuscript-page preview.',
-        },
+    data_ink, structure_ink, neutral = '#23567C', '#814C18', '#526474'
+    col_x = [72.0, 108.9, 145.8]
+    row_y = [21.6, 34.7, 49.3, 60.3]
+    cell_w, cell_h = 31.0, 8.6
+    rise_x, rise_y = 3.9, 2.8  # Projection of a common, illustrative depth.
+
+    fig = plt.figure(figsize=(width_mm / 25.4, height_mm / 25.4))
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, width_mm)
+    ax.set_ylim(height_mm, 0)
+    ax.axis('off')
+    label_artists, entry_artists, rendered_labels = [], [], []
+
+    def label(x, y, text, *, size=14, color='#243847', align='center', weight='normal'):
+        artist = ax.text(x, y, text, ha=align, va='center', fontsize=size,
+                         color=color, fontweight=weight, zorder=5)
+        label_artists.append(artist)
+        return artist
+
+    label(108.9, 4.6, 'Feature blocks', size=10.5, color=neutral, weight='bold')
+    for j, x in enumerate(col_x, start=1):
+        label(x, 10.8, rf'$\boldsymbol{{\beta}}_{j}$')
+
+    label(29.3, 25.9, 'Data factors', size=11, color=data_ink, align='right', weight='bold')
+    label(29.3, 30.0, 'Sample blocks', size=9.3, color=neutral, align='right')
+    label(29.3, 54.7, 'Structural\nfactors', size=11, color=structure_ink,
+          align='right', weight='bold')
+    ax.plot([33.3, 33.3], [17.5, 38.6], color='#5487AD', lw=1.35)
+    ax.plot([33.3, 33.3], [45.2, 64.4], color='#AD7841', lw=1.35)
+    ax.plot([55.8, 166.6], [42.3, 42.3], color='#CCD4D9', lw=.65)
+
+    for i, y in enumerate(row_y):
+        data_row = i < 2
+        ink = data_ink if data_row else structure_ink
+        label(41.1, y, rf'$f_{i + 1}$', color=ink)
+        if data_row:
+            label(46.1, y, rf'$(I_{i + 1})$', size=10.5, color=neutral, align='left')
+        for j, x in enumerate(col_x):
+            left, top = x - cell_w / 2, y - cell_h / 2
+            right, bottom = left + cell_w, top + cell_h
+            if data_row:
+                top_face = [(left, top), (left + rise_x, top - rise_y),
+                            (right + rise_x, top - rise_y), (right, top)]
+                right_face = [(right, top), (right + rise_x, top - rise_y),
+                              (right + rise_x, bottom - rise_y), (right, bottom)]
+                for points, fill in [(top_face, '#F3F9FD'), (right_face, '#AACBE0')]:
+                    ax.add_patch(Polygon(points, closed=True, facecolor=fill,
+                                         edgecolor='#6C9ABA', linewidth=.7, joinstyle='round'))
+                front, edge = '#E2F0FA', '#6C9ABA'
+            elif mask[i, j]:
+                front, edge = '#FBEDD9', '#BC966D'
+            else:
+                front, edge = '#F9FAFB', '#A6B0B8'
+            ax.add_patch(Rectangle((left, top), cell_w, cell_h, facecolor=front,
+                                   edgecolor=edge, linewidth=.75,
+                                   linestyle='-' if mask[i, j] else (0, (2.5, 2.2))))
+            if mask[i, j]:
+                text = label(x, y, rf'$\mathbf{{A}}_{{{i + 1}{j + 1}}}$', size=15, color=ink)
+                rendered_labels.append(f'A_{i + 1}{j + 1}')
+            else:
+                text = label(x, y, r'$0$', size=15, color=neutral)
+            entry_artists.append((text, left, top, right, bottom))
+
+    assert rendered_labels == expected_labels and len(entry_artists) == 12
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    canvas = fig.get_window_extent()
+    boxes = [artist.get_window_extent(renderer) for artist in label_artists]
+    minimum_gap_px = float('inf')
+    for index, box in enumerate(boxes):
+        assert canvas.contains(*box.min) and canvas.contains(*box.max), label_artists[index].get_text()
+        for other in boxes[index + 1:]:
+            assert not box.overlaps(other), label_artists[index].get_text()
+            dx = max(box.x0 - other.x1, other.x0 - box.x1, 0)
+            dy = max(box.y0 - other.y1, other.y0 - box.y1, 0)
+            minimum_gap_px = min(minimum_gap_px, np.hypot(dx, dy))
+    for artist, left, top, right, bottom in entry_artists:
+        cell = ax.transData.transform([[left, bottom], [right, top]])
+        box = artist.get_window_extent(renderer)
+        assert cell[0, 0] < box.x0 < box.x1 < cell[1, 0]
+        assert cell[0, 1] < box.y0 < box.y1 < cell[1, 1]
+
+    export_figure(fig, 'fig1_factor_structure', [], png_dpi=1200)
+    qa = {
+        'archetype': 'operator-block schematic with oblique data tiles',
+        'target': 'CSDA, Elsevier cas-dc double column',
+        'native_width_mm': width_mm,
+        'native_height_mm': height_mm,
+        'incidence_mask': mask.astype(int).tolist(),
+        'data_factor_rows': [1, 2],
+        'structural_factor_rows': [3, 4],
+        'nonzero_incidences': len(expected_labels),
+        'nonzero_labels': expected_labels,
+        'zero_cells': zeros,
+        'encoding': ('Six blue tiles show sample-by-feature data blocks. Flat ochre cells '
+                     'show structural operators on the same feature blocks. Dashed neutral '
+                     'cells display the two exact zero maps. The projected depth is schematic.'),
+        'layout_checks': {'text_count': len(boxes), 'all_text_within_canvas': True,
+                          'all_text_pairwise_disjoint': True,
+                          'all_entries_within_own_cells': True,
+                          'minimum_text_gap_mm': round(float(minimum_gap_px * 25.4 / fig.dpi), 3)},
+        'export': ['vector PDF', '1200 dpi PNG', 'editable SVG'],
+        'data_status': 'Exact mathematical schematic, without estimated quantities.',
     }
-    (ROOT/'results'/'figure1_qa.json').write_text(json.dumps(qa,indent=2)+'\n')
+    (ROOT / 'results').mkdir(exist_ok=True)
+    (ROOT / 'results' / 'figure1_qa.json').write_text(json.dumps(qa, indent=2) + '\n')
 
 
 def load_data():
@@ -222,7 +239,11 @@ def load_data():
     traces={}
     with gzip.open(ROOT/'results'/'traces.jsonl.gz','rt') as f:
         for line in f:
-            a=json.loads(line);traces[a['key']]=a['history']
+            record = json.loads(line)
+            key = record['key']
+            if key in traces or not record['history']:
+                raise ValueError(f'Duplicate or empty trajectory: {key}')
+            traces[key] = record['history']
     return rows,traces
 
 
@@ -240,6 +261,10 @@ def convergence(rows,traces):
         'xtick.color':'#59616A','ytick.color':'#59616A','savefig.bbox':None,
     }
     summaries={};point_count=0;curves=0;point_ranges={}
+    settings = json.loads((ROOT / 'results' / 'methods.json').read_text())
+    check_every = settings['check_every']
+    target = settings['synthetic_gap_tolerance']
+    y_low, y_high = 5e-7, 500
     with mpl.rc_context(style):
         fig,axes=plt.subplots(1,3,sharey=True,figsize=(width_mm/25.4,height_mm/25.4))
         fig.subplots_adjust(left=.083,right=.988,bottom=.195,top=.785,wspace=.25)
@@ -249,6 +274,7 @@ def convergence(rows,traces):
             ('logistic','logistic','Logistic',1200,[0,500,1000]),
         ]):
             ax=axes[index];summaries[kind]={};point_ranges[kind]={}
+            largest_endpoint = 0
             for metric in ['unit','budget']:
                 ends=[];all_y=[]
                 for seed in range(5):
@@ -256,13 +282,24 @@ def convergence(rows,traces):
                     h=traces[key]
                     x=np.array([v['iteration'] for v in h])
                     y=np.array([v['relative_gap'] for v in h])
-                    assert np.isfinite(y).all() and (y>5e-7).all() and (y<500).all()
-                    assert np.all(np.diff(x)>0) and x[-1]<xmax and y[-1]<=1e-6
                     matched=rows[(rows.kind=='synthetic')&(rows.loss==loss)&
                                  (rows.seed==seed)&(rows.row_parts==8)&
                                  (rows.column_parts==4)&(rows.metric==metric)&
                                  (rows.zero_edges==0)]
-                    assert len(matched)==1 and x[-1]==int(matched.iloc[0].iterations)
+                    if len(matched) != 1:
+                        raise ValueError(f'Expected one endpoint record for {key}')
+                    endpoint = matched.iloc[0]
+                    last = int(endpoint.iterations)
+                    checkpoints = [1, *range(check_every, last + 1, check_every)]
+                    if checkpoints[-1] != last:
+                        checkpoints.append(last)  # The solver also checks its iteration cap.
+                    if not np.array_equal(x, checkpoints):
+                        raise ValueError(f'Incomplete or out-of-order checkpoint history: {key}')
+                    if (not np.isfinite(y).all() or not (y > 0).all() or
+                        not (y[:-1] > target).all() or y[-1] > target or
+                        not np.isclose(y[-1], endpoint.relative_gap, rtol=1e-8, atol=1e-15)):
+                        raise ValueError(f'Invalid log-gap history or mismatched first crossing: {key}')
+                    largest_endpoint = max(largest_endpoint, last)
                     # All saved checkpoints are connected in their original order.
                     ax.plot(x,y,color=COLORS[metric],
                             ls=(0,(3.2,1.8)) if metric=='unit' else '-',
@@ -279,22 +316,29 @@ def convergence(rows,traces):
                     'sample_sd':float(np.std(ends,ddof=1)),
                 }
                 point_ranges[kind][metric]={'min':min(all_y),'max':max(all_y)}
-            ax.set_yscale('log');ax.set_ylim(5e-7,500)
+            y_low = min(y_low, .95 * min(values['min'] for values in point_ranges[kind].values()))
+            y_high = max(y_high, 1.05 * max(values['max'] for values in point_ranges[kind].values()))
+            ax.set_yscale('log')
             ax.set_yticks([1e-6,1e-4,1e-2,1,100])
             ax.yaxis.set_minor_locator(mpl.ticker.NullLocator())
             # Quiet horizontal rules support log-scale comparison; no
             # vertical grid is needed for continuous trajectories.
             for level in [1e-4,1e-2,1,100]:
                 ax.axhline(level,color='#E5E9ED',lw=.35,zorder=0)
-            ax.axhline(1e-6,color='#8F98A1',ls=(0,(1.2,2.1)),lw=.6,zorder=1)
-            ax.set_xlim(0,xmax);ax.set_xticks(xticks)
+            ax.axhline(target,color='#8F98A1',ls=(0,(1.2,2.1)),lw=.6,zorder=1)
+            ax.set_xlim(0, max(xmax, 1.02 * largest_endpoint))
+            if largest_endpoint <= xmax:
+                ax.set_xticks(xticks)
+            else:
+                ax.xaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins=3, integer=True))
             ax.tick_params(axis='both',length=2.8,pad=3.2)
             panel_heading(ax,index,title)
             if index==0:ax.set_ylabel('Relative gap',labelpad=5)
+        axes[0].set_ylim(y_low, y_high)
         metric_legend(fig)
         fig.text(.544,.040,'Iteration',ha='center',va='center',fontsize=9)
         export_figure(fig,'fig2_convergence',axes)
-    assert curves==30 and point_count==3779
+    assert curves == 30
     qa={
         'archetype':'quantitative_grid','target':'Elsevier cas-dc full text width',
         'native_width_mm':width_mm,'native_height_mm':height_mm,
@@ -314,18 +358,19 @@ def convergence(rows,traces):
         'baseline_definition':'Unit metric versus fixed uniform incidence-budget metric on the same criterion and sample.',
         'uncertainty':'All five seed trajectories shown; no aggregate, confidence interval or error bar.',
         'statistical_tests':'None; descriptive comparison','multiple_comparison_correction':'Not applicable',
-        'target_relative_gap':1e-6,'export':['vector PDF','900 dpi PNG','editable SVG'],
+        'target_relative_gap':target,'export':['vector PDF','900 dpi PNG','editable SVG'],
         'font_pt':{'axis_labels':9,'tick_labels':8,'legend':9,'panel_labels':9},
         'layout_checks':'All axes, labels and legend fit within the native-size canvas.',
         'removed_annotations':'Iteration-summary footer, verbose panel titles and tolerance legend entry; definitions retained in caption/table.',
         'design_review':{
             'style':'Three equal panels; 9 pt headings and axis titles with 8 pt ticks; shared log scale and fine horizontal reference rules; blue/ochre with dashed/solid curves and matching endpoint symbols in one compact legend.',
             'code':'Native CAS text width; embedded TrueType PDF; editable SVG; 900 dpi PNG; explicit bounds assertions.',
-            'integrity':'All 30 original histories and 3779 checkpoints retained; final iterations match runs.csv.',
+            'integrity':f'All {curves} histories and {point_count} checkpoints retained; first crossings match runs.csv.',
             'visual':'Generation checks data and layout bounds; visually inspect the exported figures.',
         },
     }
     (ROOT/'results'/'figure2_qa.json').write_text(json.dumps(qa,indent=2)+'\n')
+    return point_count
 
 
 def communication(rows):
@@ -423,10 +468,10 @@ def communication(rows):
 
 
 def main():
-    rows,traces=load_data();schematic();convergence(rows,traces);communication(rows)
+    rows,traces=load_data();schematic();checkpoint_count=convergence(rows,traces);communication(rows)
     qa=dict(figures=3,all_runs=138,simulation_replicates=5,trace_source='results/traces.jsonl.gz',
-            endpoint_source='results/runs.csv',figure1='Single-column augmented operator-block matrix: ten explicit nonzero A_aj blocks, two exact zeros, two data-factor rows and two cross-block structural-factor rows; exact conceptual example.',
-            figure2='Compact full-width three-panel convergence plot at M=8,J=4: all 30 original trajectories and 3779 recorded checkpoints. Each line ends at actual termination. Summaries remain in tables, with no aggregate or smoothed curves.',
+            endpoint_source='results/runs.csv',figure1='Double-column schematic (173.8 mm wide): six oblique data tiles in a 2-by-3 partition, four nonzero structural operator blocks, and two exact zero maps.',
+            figure2=f'Compact full-width three-panel convergence plot at M=8,J=4: all 30 original trajectories and {checkpoint_count} recorded checkpoints. Each line ends at actual termination. Summaries remain in tables, with no aggregate or smoothed curves.',
             figure3='All five seed-paired endpoint traffic values at each layout. Points are individual runs; short black lines are means. No sampling or omitted runs.',
             statistical_tests='None: descriptive numerical comparisons, no significance claims',
             uncertainty='Individual independent simulation seeds shown, no confidence-interval claim',
@@ -437,3 +482,4 @@ def main():
 
 
 if __name__=='__main__':main()
+

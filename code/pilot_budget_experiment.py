@@ -33,7 +33,7 @@ from scipy.optimize import minimize
 
 from hybrid_solver import GraphSplitting, make_regression
 from run_experiments import synthetic_case, test_metrics
-from make_tables import sig
+from make_tables import write_pilot_table
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / 'results'
@@ -205,7 +205,8 @@ def make_pilot_weights(problem, pilot_result):
                   edge_upper_uniform=vuniform, edge_lower_best=vminus,
                   upper_P_pilot=float(anchor_upper+vplus),
                   upper_P_uniform=float(anchor_upper+vuniform),
-                  upper_P_ratio=float((anchor_upper+vplus)/(anchor_upper+vuniform)),
+                  upper_P_ratio=(float((anchor_upper+vplus)/(anchor_upper+vuniform))
+                                 if anchor_upper+vuniform else 1.0),
                   edge_upper_ratio=float(vplus/vuniform) if vuniform else 1.,
                   regret_bound=vplus-vminus, minimum_omega=float(omega.min()),
                   allocation_seconds=perf_counter()-start,
@@ -426,7 +427,7 @@ def check_saved_outputs(records, arrays, traces):
     for trace in traces:
         row=indexed[trace['key']];history=trace['history']
         assert history[-1]['iteration']==row['main_iterations']
-        assert len(history)+1==row['main_diagnostic_evaluations']
+        assert len(history)==row['main_diagnostic_evaluations']
         if row['converged']:
             assert history[-1]['relative_gap']<=DESIGN['main_relative_gap']
             assert all(h['relative_gap']>DESIGN['main_relative_gap'] for h in history[:-1])
@@ -440,23 +441,6 @@ def check_saved_outputs(records, arrays, traces):
                 reference_P_ratio_min=min(ratios),reference_P_ratio_max=max(ratios),
                 individual_pilot_payload_improvements_over_uniform=int(work_better))
 
-
-def make_table(summary):
-    lines=[r'\begin{table*}[pos=t]',r'\centering',r'\footnotesize',
-           r'\setlength{\tabcolsep}{3pt}',r'\renewcommand{\arraystretch}{1.08}',
-           r'\caption{Comparison of layouts with 16 data blocks ($MJ=16$) at $\rho=1$, averaged over five seeds. U, B and P denote unit, uniform-budget and pilot-budget metrics. The P totals include its 100-step pilot, a fresh main solve and $2|\mathcal E|$ weight-allocation scalars. All main solves target relative gap $10^{-6}$. Iterations are means (sample standard deviations); payload excludes certificate checks, whose counts are supplied separately. Numerical summaries are rounded to three significant figures.}',
-           r'\label{tab:pilot-budgets}',r'\begin{tabular}{llrrrrrr}',r'\toprule',
-           r'& & \multicolumn{3}{c}{Total iterations} & \multicolumn{3}{c}{Payload ($10^6$)}\\',
-           r'\cmidrule(lr){3-5}\cmidrule(lr){6-8}',
-           r'Model & Grid & U & B & P & U & B & P\\',r'\midrule']
-    for loss,name in [('squared','Squared fused'),('huber','Huber'),('logistic','Logistic')]:
-        for M,J in DESIGN['layouts']:
-            group=[next(r for r in summary if r['loss']==loss and r['row_parts']==M and r['column_parts']==J and r['metric']==metric) for metric in DESIGN['metrics']]
-            it=[f'{sig(r["total_iterations_mean"])} ({sig(r["total_iterations_sd"])})' for r in group]
-            traffic=[sig(r['total_optimization_allocation_payload_mean']/1e6) for r in group]
-            lines.append(' & '.join([name,rf'${M}\times{J}$',*it,*traffic])+r'\\')
-    lines += [r'\bottomrule',r'\end{tabular}',r'\end{table*}','']
-    (ROOT/'tables/pilot_budget_results.tex').write_text('\n'.join(lines))
 
 
 def main():
@@ -509,7 +493,7 @@ def main():
             traces=[json.loads(line) for line in stream]
         validation.update(check_saved_outputs(records,{k:saved[k] for k in saved.files},traces))
         (RESULTS/'pilot_budget_validation.json').write_text(json.dumps(validation,indent=2)+'\n')
-        make_table(summary)
+        write_pilot_table(summary)
         print('Rebuilt summaries and reference-regret certificates for',len(diagnostics),'pilots')
         return
     original={str(f.relative_to(ROOT)):sha256(f) for f in RESULTS.rglob('*')
@@ -519,6 +503,7 @@ def main():
                  numpy=np.__version__,scipy=scipy.__version__,blas_threads=1,
                  timing='Independent jobs may run concurrently; every solve is a sequential simulation. No timings are interpreted as network or distributed speedups.',
                  existing_results_reused=False,script_sha256=sha256(__file__),
+                 script_sha256_at_execution=sha256(__file__),
                  solver_sha256_at_start=sha256(ROOT/'code/hybrid_solver.py'))
     (RESULTS/'pilot_budget_methods.json').write_text(json.dumps(methods,indent=2)+'\n')
     tasks=[(kind,seed) for kind in DESIGN['models'] for seed in DESIGN['seeds']]
@@ -547,7 +532,7 @@ def main():
     with gzip.open(RESULTS/'pilot_budget_traces.jsonl.gz','wt') as stream:
         for a in answers:
             for trace in a['traces']:stream.write(json.dumps(trace)+'\n')
-    make_table(summary)
+    write_pilot_table(summary)
     changed=[name for name,digest in original.items() if sha256(ROOT/name)!=digest]
     if changed:
         raise RuntimeError(f'Pre-existing numerical files changed: {changed}')

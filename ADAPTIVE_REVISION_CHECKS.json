@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "new_rows": {
+    "core": 973,
+    "robust": 1320
+  },
+  "new_statuses": {
+    "converged": 1696,
+    "numerical_failure": 387,
+    "iteration_cap": 210
+  },
+  "numerical_validation_stages": 7,
+  "prior": {
+    "results": {
+      "old_files": 264,
+      "changed": []
+    },
+    "code": {
+      "old_files": 59,
+      "changed": []
+    }
+  },
+  "paired": {
+    "status": "passed",
+    "paired_old_new_records": 278,
+    "max_absolute_gap_difference": 2.117582368135751e-22,
+    "checks": [
+      "transformed-coordinate SRA ratio",
+      "unscaled multiplier preservation",
+      "zero-norm fallbacks",
+      "residual-balance branches",
+      "old/new endpoint and full ledger identity"
+    ]
+  },
+  "documents": {
+    "main": {
+      "pages": 32,
+      "labels": 162,
+      "references": 288,
+      "citations": 38,
+      "missing": [],
+      "duplicates": [],
+      "overfull_lines": [
+        "Overfull \\hbox (0.87497pt too wide) in paragraph at lines 135--143"
+      ]
+    },
+    "supplement": {
+      "pages": 17,
+      "labels": 26,
+      "references": 14,
+      "citations": 2,
+      "missing": [],
+      "duplicates": [],
+      "overfull_lines": []
+    },
+    "AI_disclosure_location": "ending declaration only",
+    "status": "passed"
+  },
+  "scope": "Original 38 stages not rerun in this revision. All 2293 new comparator/sensitivity records completed; paired old/new checks and seven numerical validation stages passed. Sequential timings are not a network benchmark."
+}

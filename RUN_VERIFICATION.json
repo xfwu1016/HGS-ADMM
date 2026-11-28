@@ -1,0 +1,76 @@
+{
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 python reproduce.py --all --jobs 3",
+  "comparison_to_preserved_baseline": {
+    "common_csv_files": 61,
+    "common_csv_rows": 15665,
+    "expected_tcp_header_delay_corrections_in_canonical_and_component_csvs": 28,
+    "float_representation_or_roundoff_cells": 142,
+    "legacy_replay_csv": "Deprecated replay microbenchmark excluded; current manuscript TCP evidence was rerun in all 14 specified arms.",
+    "max_absolute_roundoff": 7.105427357601002e-15,
+    "npz_archives": 158,
+    "npz_arrays_exactly_equal": 410,
+    "previously_missing_reference_fields_now_filled": 13,
+    "timing": "Machine-dependent timings are retained from this one complete run and are not required to match the old baseline.",
+    "trace_checkpoints_exactly_equal": 31457,
+    "trace_trajectories": 273,
+    "unexpected_scientific_differences": 0
+  },
+  "data_inputs": "scikit-learn bundled Diabetes and Wisconsin Diagnostic Breast Cancer datasets only; synthetic data regenerated from script seeds",
+  "environment": {
+    "blas_threads": 1,
+    "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "pilot_jobs": 3,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "versions": {
+      "matplotlib": "3.10.8",
+      "numpy": "2.3.5",
+      "pandas": "2.2.3",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.0"
+    },
+    "visible_cpu_affinity_count": 9
+  },
+  "figures": {
+    "figure1": "Fresh generator output is the single-panel block schematic. The historical archived figure was a two-panel layout not produced by the delivered generator; manuscript caption is synchronized to the fresh single-panel output.",
+    "pixel_identical_to_baseline": [
+      "fig2_convergence",
+      "fig3_communication",
+      "fig_alg1_workflow"
+    ]
+  },
+  "full_run": {
+    "elapsed_seconds": 888.517735467,
+    "failed_stages": 0,
+    "manifest_sha256": "5ee1c5ab5dffb6289160149687e85f2fc0c7e323bcb612af4921fded67be6f8a",
+    "passed_stages": 38,
+    "prior_result_files_copied": 0,
+    "reproduce_py_sha256": "9f9c8aacb463057724e9a9880c37e7aa0f106136f56375e6e7240fd332c3818e",
+    "retries": 0,
+    "stage_count": 38
+  },
+  "interpretation_limits": [
+    "TCP execution uses two processes on one host and an application-level added-delay model; this is not a physical multi-machine network measurement.",
+    "Each split/metric/profile has one timed run, and metric order is fixed; timing summaries do not separate split variation from measurement noise or order effects.",
+    "The breast-cancer repeated splits use a fixed penalty selected in the original analysis; subsequent test partitions can overlap original tuning observations, so these repeats assess optimizer robustness rather than independent validation of penalty selection."
+  ],
+  "manuscript_coverage": {
+    "figures": 4,
+    "tables": 29,
+    "uncovered_artifacts": 0
+  },
+  "meaning": "One fresh, complete manuscript experiment run; existing raw outputs were not copied into the run directory.",
+  "postprocessing": {
+    "command": "python reproduce.py --step extension-outputs",
+    "file": "code/table_templates/table_repeated_real_splits.tex.in",
+    "manifest_sha256": "b66f86abf5f7d2d3321ef67ed102e7d9d8594366e50cd569246694504da9fb00",
+    "numerical_or_solver_code_changes": 0,
+    "raw_csv_files_verified_unchanged": 61,
+    "scope": "One explanatory table-template footnote, after all numerical stages finished.",
+    "status": "passed",
+    "template_sha256": "34a67caac397a9e9c414d0659edf07cb219315f990f146fcc1a9c45e6bf52cc2"
+  },
+  "record_version": 1,
+  "started_utc": "20261127T024836742413Z",
+  "status": "passed"
+}

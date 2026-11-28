@@ -5,10 +5,11 @@ This script intentionally uses a direct vector implementation independent of
 the general solver in hybrid_solver.py.
 """
 from pathlib import Path
+import os
 import csv
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+RESULTS = Path(os.environ.get("CSDA_CHECK_OUTPUT", Path(__file__).resolve().parents[1] / "results"))
 
 
 def run(rows=8, metric="budget", n=64, mu=0.2, rho=1.0, tolerance=1e-10):
@@ -68,14 +69,14 @@ def run(rows=8, metric="budget", n=64, mu=0.2, rho=1.0, tolerance=1e-10):
 
 
 def main():
-    (ROOT/"results").mkdir(exist_ok=True)
+    RESULTS.mkdir(exist_ok=True)
     summary=[]; traces=[]
     for rows in (1,2,4,8,16,32):
         for metric in ("unit","budget"):
             result, trace=run(rows,metric)
             summary.append(result);traces.extend(trace)
     for name,data in (("analytic_partition.csv",summary),("analytic_partition_traces.csv",traces)):
-        with (ROOT/"results"/name).open("w",newline="") as f:
+        with (RESULTS/name).open("w",newline="") as f:
             writer=csv.DictWriter(f,fieldnames=list(data[0]));writer.writeheader();writer.writerows(data)
     print("Exact ridge partition study completed; all invariance and rate checks passed.")
     for row in summary:

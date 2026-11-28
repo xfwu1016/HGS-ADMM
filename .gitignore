@@ -1,12 +1,11 @@
-# Generated outputs and local Python environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 /results/
+/results_check/
 /figures/
 /tables/
 /logs/
-/.venv/
-/venv/
-__pycache__/
-*.py[cod]
-.ipynb_checkpoints/
+/wheelhouse/
 .DS_Store
-Thumbs.db

@@ -11,6 +11,7 @@ blocks and verify equality of the complete quadratic objective. None of
 these algebraic checks is an iteration-performance benchmark.
 """
 from pathlib import Path
+import os
 import csv
 import json
 import platform
@@ -18,7 +19,7 @@ import platform
 import numpy as np
 
 
-ROOT = Path(__file__).resolve().parents[1]
+RESULTS = Path(os.environ.get("CSDA_CHECK_OUTPUT", Path(__file__).resolve().parents[1] / "results"))
 T_VALUES = (0.25, 0.5, 1.0, 2.0, 4.0, 8.0)
 MU = 0.2
 RHO = 1.0
@@ -277,7 +278,7 @@ def verify_same_objective_partitions(mu=MU, rho=RHO):
             records.append(row)
             for key, value in errors.items():
                 max_errors[key] = max(max_errors.get(key, 0.), value)
-    results = ROOT / "results"
+    results = RESULTS
     results.mkdir(exist_ok=True)
     with (results / "partition_same_objective.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(records[0]))
@@ -328,7 +329,7 @@ def main():
             records.append(row)
             for key, value in errors.items():
                 max_errors[key] = max(max_errors.get(key, 0.0), value)
-    results = ROOT / "results"
+    results = RESULTS
     results.mkdir(exist_ok=True)
     with (results / "partition_examples.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(records[0]))

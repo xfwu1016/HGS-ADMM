@@ -11,6 +11,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import os
 import sys
 
 import numpy as np
@@ -80,6 +81,21 @@ def run_checks(reference_code=None):
     else:
         raise AssertionError("Mixed logistic label encodings were accepted")
     records.append({"test": "mixed_binary_encodings_rejected"})
+
+    # With these moderate scales Newton stays inside its bracket but
+    # alternates close to its endpoints, so the fallback must finish.
+    logistic_response = np.sqrt(24) * np.array([1., -1.])
+    logistic = Factor("logistic", {0: np.ones((2, 1))},
+                      response=logistic_response, scale=1/24)
+    prox_input = np.array([-.94, .94])
+    proximal_coefficient = .082
+    output = logistic.prox(prox_input, proximal_coefficient)
+    residual = proximal_coefficient * (output - prox_input)
+    residual -= logistic.scale * logistic_response / (1 + np.exp(logistic_response * output))
+    error = float(np.max(np.abs(residual)))
+    assert error < 1e-13
+    records.append({"test": "logistic_bracket_fallback", "stationarity_error": error})
+
     reference = load_reference(reference_code) if reference_code else None
     rng = np.random.default_rng(20261122)
     ordinary_X = rng.normal(size=(16, 6))
@@ -135,7 +151,7 @@ def run_checks(reference_code=None):
                 record["previous_solver_nontiming_values_identical"] = True
             records.append(record)
     output = {"revision": 9, "checks_passed": len(records), "records": records,
-              "implementation_change": "Empty-factor, coefficient, and zero-adjoint certificate checks",
+              "implementation_change": "Input, certificate, and logistic bracket fallback checks",
               "existing_numerical_results_written": False}
     if reference_code:
         output["reference_solver_sha256"] = hashlib.sha256(Path(reference_code).read_bytes()).hexdigest()
@@ -146,8 +162,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-code", type=Path)
     parser.add_argument("--output", type=Path,
-                        default=Path(__file__).resolve().parents[1]
-                        / "results" / "solver_input_checks_v9.json")
+                        default=Path(os.environ.get("CSDA_CHECK_OUTPUT", Path(__file__).resolve().parents[1] / "results"))
+                        / "solver_input_checks_v9.json")
     args = parser.parse_args()
     report = run_checks(args.reference_code)
     args.output.write_text(json.dumps(report, indent=2) + "\n")

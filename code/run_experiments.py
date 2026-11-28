@@ -3,7 +3,7 @@
 Run with one BLAS thread, e.g.
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python run_experiments.py
 All elapsed times are sequential simulation times, including periodic gap
-evaluations and excluding setup and final audit checks.
+evaluations and excluding setup and the final state-invariant audit.
 """
 from __future__ import annotations
 import argparse,csv,gzip,json,os,platform,time
@@ -154,7 +154,7 @@ def run_case(case,writer,traces,stopping,records,extra_padded=False):
                 args=args,metadata=case.get('metadata',{}))
 
 
-def prepare_real_case(which,split_seed=2026):
+def prepare_real_case(which,split_seed=2026,*,save_split=True):
     if which=="diabetes":
         data=load_diabetes(scaled=False);Xraw=data.data;yraw=data.target
         baseidx=np.arange(len(yraw))
@@ -186,9 +186,10 @@ def prepare_real_case(which,split_seed=2026):
         ym=yraw[train].mean();ys=yraw[train].std();y=(yraw[train]-ym)/ys;yt=(yraw[test]-ym)/ys
     else:
         y=yraw[train];yt=yraw[test];ys=1;ym=0
-    np.savez_compressed(RESULTS/"datasets"/(which+"_split.npz"),X=X,y=y,Xtest=Xt,ytest=yt,
-                        train_indices=train,test_indices=test,fit_indices=fit,validation_indices=val,
-                        feature_means=scale.mean_,feature_scales=scale.scale_,target_mean=ym,target_scale=ys)
+    if save_split:
+        np.savez_compressed(RESULTS/"datasets"/(which+"_split.npz"),X=X,y=y,Xtest=Xt,ytest=yt,
+                            train_indices=train,test_indices=test,fit_indices=fit,validation_indices=val,
+                            feature_means=scale.mean_,feature_scales=scale.scale_,target_mean=ym,target_scale=ys)
     meta=dict(dataset=which,split_seed=split_seed,train_n=len(train),test_n=len(test),fit_n=len(fit),
               validation_n=len(val),tuning=tuning,selected_l1=selected,ridge=args['ridge'],
               validation_score="standardized MSE" if which=="diabetes" else "log loss",
@@ -229,7 +230,7 @@ def main():
                  communication="2 sum_edges(m_factor+p_feature) float64 scalars per optimization iteration; diagnostics are evaluated centrally offline and are excluded, with their number recorded",
                  design_scaling="Data operators X/sqrt(n). Squared f=||z-y/sqrt(n)||^2/2. Huber f=sum Huber_(delta/sqrt(n))(z-y/sqrt(n)). Logistic f=sum log(1+exp(-sqrt(n)*label*z))/n. Structural D maps unscaled, f_D=lambda_TV||z_D||_1.",
                  fusion_factor_blocks=4,weights="unit: a=c=b=d=1; budget: a=c=1, b_e=factor degree, d_e=1/feature degree",
-                 timing="sequential simulation on one Python process; includes periodic gap evaluations, excludes setup and final audit checks; no distributed speedup claim",
+                 timing="sequential simulation on one Python process; includes periodic gap evaluations, excludes setup and the final state-invariant audit; no distributed speedup claim",
                  python=platform.python_version(),numpy=np.__version__,scipy=scipy.__version__,sklearn=sklearn.__version__,
                  platform=platform.platform(),blas_threads=os.environ.get('OPENBLAS_NUM_THREADS'),omp_threads=os.environ.get('OMP_NUM_THREADS'))
     cpuinfo=Path('/proc/cpuinfo')

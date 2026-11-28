@@ -1,0 +1,111 @@
+{
+  "revision_date": "2026-11-27",
+  "scope": "Editorial revision and existing-record diagnostics; no optimization algorithms, hyperparameter grids, seeds or archived fits changed.",
+  "full_pipeline_rerun_in_this_revision": false,
+  "archived_original_result_files_unchanged": 248,
+  "validation": {
+    "started_utc": "20261127T090741590651Z",
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "dependencies": {
+      "numpy": "2.3.5",
+      "scipy": "1.17.0",
+      "scikit-learn": "1.8.0",
+      "matplotlib": "3.10.8",
+      "pandas": "2.2.3"
+    },
+    "pilot_process_jobs": 1,
+    "blas_threads": 1,
+    "steps": [
+      {
+        "name": "reduced-checks",
+        "script": "check_reduced_state.py",
+        "script_sha256": "2cc4410ebc58e1d1017c7b0d3e45902049940f2759246cc730d5d909bbd14d60",
+        "arguments": [],
+        "elapsed_seconds": 0.14433885699963867,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_reduced-checks.log"
+      },
+      {
+        "name": "solver-checks",
+        "script": "validate_solver.py",
+        "script_sha256": "62d2b5ad5e01bdd1d67e0a8400e5dbe53e52632f70fbdaf0b82e0bcbb84d31c0",
+        "arguments": [],
+        "elapsed_seconds": 7.067681253000046,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_solver-checks.log"
+      },
+      {
+        "name": "input-checks",
+        "script": "check_solver_inputs.py",
+        "script_sha256": "0d62a0191f40334cb1972a3c97b15bc8ce2709ce790e78c3744fa7cd495d06bb",
+        "arguments": [],
+        "elapsed_seconds": 0.6928918390003673,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_input-checks.log"
+      },
+      {
+        "name": "budget-checks",
+        "script": "check_pilot_budget_theory.py",
+        "script_sha256": "8d0ef11f14e224900d885524fdda9342840ecbddf863c34ef5084e6010a2a642",
+        "arguments": [],
+        "elapsed_seconds": 0.9903079830000934,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_budget-checks.log"
+      },
+      {
+        "name": "analytic",
+        "script": "analytic_partition.py",
+        "script_sha256": "8dcf6620a01af99e8656f4663435371df6f4570526dbeb70391918860028f75a",
+        "arguments": [],
+        "elapsed_seconds": 0.17744841200055816,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_analytic.log"
+      },
+      {
+        "name": "partition-checks",
+        "script": "verify_partition_examples.py",
+        "script_sha256": "0f0aac9ae1d0b3bf980b7bd1efdef06cfd34dee79cd278c5a484a9ace6e91a06",
+        "arguments": [],
+        "elapsed_seconds": 0.1287105600003997,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_partition-checks.log"
+      },
+      {
+        "name": "oracle-check",
+        "script": "oracle_stopping_example.py",
+        "script_sha256": "7b9b59f4703b70e6203b582fbfe869680dc3fd86078cb1a6aa592f9008ea02b1",
+        "arguments": [],
+        "elapsed_seconds": 0.04521254100018268,
+        "returncode": 0,
+        "log": "logs/20261127T090741590651Z_oracle-check.log"
+      }
+    ],
+    "check_output": "results_check/20261127T090741590651Z",
+    "elapsed_seconds": 9.250602280999374,
+    "status": "passed"
+  },
+  "static_references": {
+    "changed_original_results": [],
+    "new_results": [
+      "results/pilot_uncertainty_diagnostics.csv",
+      "results/pilot_uncertainty_summary.json"
+    ],
+    "main_labels": 154,
+    "missing_refs": [],
+    "duplicate_labels": []
+  },
+  "pdf_pages": {
+    "manuscript": 30,
+    "supplement": 8
+  },
+  "pdf_sha256": {
+    "manuscript": "8d1c13542e971d1cd755a3b536edec7a549bd25beed7ae47e9858d534b44e2f9",
+    "supplement": "ca83324022cd84574a8fa29f5ead65efdef56caa155f54b984b0a597bbf3b19e"
+  },
+  "python_compileall": "passed",
+  "new_diagnostic_source_sha256": "5ab7d4e7e03aa5684f34acb919ad8d79026d611b8ad3393289209825f90cfa3f",
+  "independent_review": "No unresolved blocking issue; see 06_Internal_Review/Independent_Revision_Review.md",
+  "visual_review": "All pages reviewed as contact sheets; first page, figures, key main tables and new supplementary tables inspected at higher resolution.",
+  "latex_status": "Both PDFs compiled successfully; no undefined references, missing citations or duplicate labels. One 0.875pt bibliography line overflow; no material clipping observed."
+}

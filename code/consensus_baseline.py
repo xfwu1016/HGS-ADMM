@@ -13,6 +13,7 @@ import numpy as np
 from scipy.linalg import cho_factor,cho_solve
 from hybrid_solver import make_regression,soft
 from run_experiments import synthetic_case,test_metrics
+from stopping_checks import is_checkpoint
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -22,7 +23,7 @@ def dt(v,p):
     return out
 
 
-def consensus_admm(X,y,row_parts,args,tol=1e-6,rho=1.0,maxiter=50000):
+def consensus_admm(X,y,row_parts,args,tol=1e-6,rho=1.0,maxiter=50000,*,certificate=None):
     began=perf_counter()
     problem=make_regression(X,y,row_parts,1,**args)
     fs=problem.factors[:row_parts];m=row_parts;p=X.shape[1]
@@ -53,12 +54,16 @@ def consensus_admm(X,y,row_parts,args,tol=1e-6,rho=1.0,maxiter=50000):
             local[i]=center+A.T@cho_solve(chol,pred[i]-ut[i]-A@center,check_finite=False)
             ut[i]+=A@local[i]-pred[i]
             uc[i]+=local[i]-beta
-        if k==1 or k%10==0 or k==maxiter:
-            theta=[rho*v for v in ut]
-            if fusion:
-                lengths=[f.size for f in problem.factors[m:]]
-                theta+=list(np.split(rho*ug,np.cumsum(lengths)[:-1]))
-            primal=problem.objective([beta]);dual=problem.dual_bound(theta);gap=primal-dual
+        if is_checkpoint(k, 10, maxiter):
+            if certificate is None:
+                theta=[rho*v for v in ut]
+                if fusion:
+                    lengths=[f.size for f in problem.factors[m:]]
+                    theta+=list(np.split(rho*ug,np.cumsum(lengths)[:-1]))
+                primal=problem.objective([beta]);dual=problem.dual_bound(theta)
+            else:
+                primal,dual,_=certificate(X,y,beta,args)
+            gap=primal-dual
             if gap < -1e-9*max(1,abs(primal)):raise RuntimeError('invalid lower bound')
             gap=max(gap,0);relative=gap/max(1,abs(primal))
             history.append(dict(iteration=k,gap=gap,relative_gap=relative))
